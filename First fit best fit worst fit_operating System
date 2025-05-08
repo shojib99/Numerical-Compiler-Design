@@ -1,0 +1,79 @@
+#!/bin/bash
+
+blocks=(150 400 300 250)
+processes=(120 210 280)
+
+first_fit() {
+    echo "First Fit Allocation:"
+    local alloc=()
+    local temp_blocks=("${blocks[@]}")
+
+    for p in "${processes[@]}"; do
+        allocated=false
+        for i in "${!temp_blocks[@]}"; do
+            if (( temp_blocks[i] >= p )); then
+                echo "Process $p -> Block ${temp_blocks[i]}"
+                temp_blocks[i]=$((temp_blocks[i] - p))
+                allocated=true
+                break
+            fi
+        done
+        if ! $allocated; then
+            echo "Process $p -> Not Allocated"
+        fi
+    done
+    echo ""
+}
+
+best_fit() {
+    echo "Best Fit Allocation:"
+    local temp_blocks=("${blocks[@]}")
+
+    for p in "${processes[@]}"; do
+        best_index=-1
+        for i in "${!temp_blocks[@]}"; do
+            if (( temp_blocks[i] >= p )); then
+                if (( best_index == -1 || temp_blocks[i] < temp_blocks[best_index] )); then
+                    best_index=$i
+                fi
+            fi
+        done
+
+        if (( best_index != -1 )); then
+            echo "Process $p -> Block ${temp_blocks[best_index]}"
+            temp_blocks[best_index]=$((temp_blocks[best_index] - p))
+        else
+            echo "Process $p -> Not Allocated"
+        fi
+    done
+    echo ""
+}
+
+worst_fit() {
+    echo "Worst Fit Allocation:"
+    local temp_blocks=("${blocks[@]}")
+
+    for p in "${processes[@]}"; do
+        worst_index=-1
+        for i in "${!temp_blocks[@]}"; do
+            if (( temp_blocks[i] >= p )); then
+                if (( worst_index == -1 || temp_blocks[i] > temp_blocks[worst_index] )); then
+                    worst_index=$i
+                fi
+            fi
+        done
+
+        if (( worst_index != -1 )); then
+            echo "Process $p -> Block ${temp_blocks[worst_index]}"
+            temp_blocks[worst_index]=$((temp_blocks[worst_index] - p))
+        else
+            echo "Process $p -> Not Allocated"
+        fi
+    done
+    echo ""
+}
+
+# Call the functions
+first_fit
+best_fit
+worst_fit
