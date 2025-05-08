@@ -1,0 +1,76 @@
+# Bankers Algorithms
+#!/bin/bash
+
+n=5
+m=4
+processes=("P0" "P1" "P2" "P3" "P4")
+allocation=(
+  "2 4 5 0"
+  "2 3 4 1"
+  "0 2 5 0"
+  "2 5 0 1"
+  "4 3 1 3"
+)
+max=(
+  "7 5 8 2"
+  "2 4 5 2"
+  "0 3 6 0"
+  "3 6 8 2"
+  "5 5 3 4"
+)
+available=(1 2 1 2)
+
+declare -a need
+for ((i=0; i<n; i++)); do
+  alloc=(${allocation[$i]})
+  maxr=(${max[$i]})
+  need_row=()
+  for ((j=0; j<m; j++)); do
+    need_val=$((maxr[j] - alloc[j]))
+    need_row+=($need_val)
+  done
+  
+   need[$i]="${need_row[*]}"
+done
+
+finish=()
+for ((i=0; i<n; i++)); do
+  finish[$i]=false
+done
+
+safe_sequence=()
+
+while true; do
+  allocated=false
+  for ((i=0; i<n; i++)); do
+    if [ "${finish[$i]}" = false ]; then
+      need_i=(${need[$i]})
+      alloc_i=(${allocation[$i]})
+      can_allocate=true
+      for ((j=0; j<m; j++)); do
+        if (( need_i[j] > available[j] )); then
+          can_allocate=false
+          break
+        fi
+      done
+      if $can_allocate; then
+        for ((j=0; j<m; j++)); do
+          available[j]=$((available[j] + alloc_i[j]))
+        done
+        finish[$i]=true
+        safe_sequence+=(${processes[$i]})
+        allocated=true
+      fi
+    fi
+  done
+  if ! $allocated; then
+  break
+fi
+done
+
+if [ ${#safe_sequence[@]} -eq $n ]; then
+  echo "System is in a safe state."
+  echo "Safe sequence: ${safe_sequence[@]}"
+else
+  echo "System is NOT in a safe state."
+fi
